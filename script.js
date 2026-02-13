@@ -8,32 +8,32 @@ const gameOverScreen = document.getElementById("gameOverScreen");
 const playBtn = document.getElementById("playBtn");
 const replayBtn = document.getElementById("replayBtn");
 
-let player = {
-  x: 180,
-  y: 550,
-  width: 40,
-  height: 40,
-  speed: 6
-};
-
+let player = { x: 180, y: 550, width: 40, height: 40, speed: 6 };
 let obstacles = [];
 let score = 0;
 let gameOver = false;
 let gameStarted = false;
 
 let keys = { left: false, right: false };
-
 let bestScore = localStorage.getItem("bestScore") || 0;
 document.getElementById("bestScore").textContent = bestScore;
 
-// clavier
+let spawnInterval = null;
+let animationFrameId = null;
+
+// => NE PAS LANCER LE JEU AUTOMATIQUEMENT
+// update() NE SERA APPELÉ QUE QUAND ON CLIQUE SUR PLAY
+
 document.addEventListener("keydown", (e) => {
   if (!gameStarted) return;
+
   if (e.key === "ArrowLeft") keys.left = true;
   if (e.key === "ArrowRight") keys.right = true;
 });
 
 document.addEventListener("keyup", (e) => {
+  if (!gameStarted) return;
+
   if (e.key === "ArrowLeft") keys.left = false;
   if (e.key === "ArrowRight") keys.right = false;
 });
@@ -41,22 +41,11 @@ document.addEventListener("keyup", (e) => {
 function spawnObstacle() {
   const size = 40;
   const x = Math.random() * (canvas.width - size);
-  obstacles.push({
-    x: x,
-    y: -size,
-    width: size,
-    height: size,
-    speed: 3 + Math.random() * 2
-  });
+  obstacles.push({ x, y: -size, width: size, height: size, speed: 3 + Math.random() * 2 });
 }
 
-let spawnInterval;
-
 function startGame() {
-  startScreen.classList.add("hidden");
-  gameOverScreen.classList.add("hidden");
-  gameArea.classList.remove("hidden");
-
+  // Reset
   gameStarted = true;
   gameOver = false;
   score = 0;
@@ -65,13 +54,28 @@ function startGame() {
 
   document.getElementById("score").textContent = score;
 
+  // Affichage
+  startScreen.classList.add("hidden");
+  gameOverScreen.classList.add("hidden");
+  gameArea.classList.remove("hidden");
+
+  // Stop interval si déjà existant (sécurité)
+  if (spawnInterval) clearInterval(spawnInterval);
+
   spawnInterval = setInterval(spawnObstacle, 1000);
+
+  // Démarre la boucle
   update();
 }
 
 function endGame() {
   gameOver = true;
+  gameStarted = false;
+
   clearInterval(spawnInterval);
+  spawnInterval = null;
+
+  if (animationFrameId) cancelAnimationFrame(animationFrameId);
 
   if (score > bestScore) {
     bestScore = score;
@@ -121,12 +125,10 @@ function update() {
     }
   });
 
-  requestAnimationFrame(update);
+  animationFrameId = requestAnimationFrame(update);
 }
 
 playBtn.addEventListener("click", startGame);
 replayBtn.addEventListener("click", startGame);
-
-
 
 
