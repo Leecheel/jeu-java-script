@@ -26,9 +26,9 @@ document.getElementById("bestScore").textContent = bestScore;
 let shieldCount = 0;
 let speedBoostCount = 0;
 
-// Intervalles
-let obstacleInterval = null;
-let bonusInterval = null;
+// Timers
+let lastObstacleSpawn = 0;
+let lastBonusSpawn = 0;
 
 document.addEventListener("keydown", e => {
   if (!gameStarted) return;
@@ -124,11 +124,8 @@ function startGame() {
   gameArea.classList.remove("hidden");
   gameOverScreen.classList.add("hidden");
 
-  if (obstacleInterval) clearInterval(obstacleInterval);
-  if (bonusInterval) clearInterval(bonusInterval);
-
-  obstacleInterval = setInterval(spawnObstacle, 1000);
-  bonusInterval = setInterval(spawnBonus, 4000);
+  lastObstacleSpawn = performance.now();
+  lastBonusSpawn = performance.now();
 
   requestAnimationFrame(update);
 }
@@ -136,9 +133,6 @@ function startGame() {
 function endGame() {
   gameOver = true;
   gameStarted = false;
-
-  if (obstacleInterval) clearInterval(obstacleInterval);
-  if (bonusInterval) clearInterval(bonusInterval);
 
   if (score > bestScore) {
     bestScore = score;
@@ -165,8 +159,20 @@ function applyBonus(bonus) {
   updateHUD();
 }
 
-function update() {
+function update(now) {
   if (gameOver) return;
+
+  // Spawn obstacles every 1s
+  if (now - lastObstacleSpawn > 1000) {
+    spawnObstacle();
+    lastObstacleSpawn = now;
+  }
+
+  // Spawn bonus every 4s
+  if (now - lastBonusSpawn > 4000) {
+    spawnBonus();
+    lastBonusSpawn = now;
+  }
 
   if (keys.left) player.x = Math.max(0, player.x - player.speed);
   if (keys.right) player.x = Math.min(canvas.width - player.w, player.x + player.speed);
