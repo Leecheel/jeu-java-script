@@ -29,6 +29,10 @@ let speedBoostCount = 0;
 // Bonus à chaque 20 points
 let nextBonusAt = 20;
 
+// DIFFICULTY
+let obstacleSpawnRate = 1000;  // ms
+let lastObstacleSpawn = 0;
+
 document.addEventListener("keydown", e => {
   if (!gameStarted) return;
   if (e.key === "ArrowLeft") keys.left = true;
@@ -44,15 +48,31 @@ document.addEventListener("keyup", e => {
   if (e.key === "ArrowDown") keys.down = false;
 });
 
+function updateDifficulty() {
+  // plus le score est haut, plus la vitesse augmente
+  level = Math.floor(score / 10) + 1;
+
+  // spawn plus rapide avec le score
+  obstacleSpawnRate = Math.max(250, 1000 - score * 10);
+
+  document.getElementById("level").textContent = level;
+}
+
 function spawnObstacle() {
   const size = 40;
-  obstacles.push({
-    x: Math.random() * (canvas.width - size),
-    y: -size,
-    w: size,
-    h: size,
-    speed: 3 + level * 0.5
-  });
+
+  // plus le niveau est haut, plus il y a d'obstacles par spawn
+  const count = Math.min(4, Math.floor(level / 3) + 1);
+
+  for (let i = 0; i < count; i++) {
+    obstacles.push({
+      x: Math.random() * (canvas.width - size),
+      y: -size,
+      w: size,
+      h: size,
+      speed: 3 + level * 0.6 + Math.random() * 1.5
+    });
+  }
 }
 
 function spawnBonus() {
@@ -63,14 +83,9 @@ function spawnBonus() {
     y: -size,
     w: size,
     h: size,
-    speed: 2 + level * 0.3,
+    speed: 2 + level * 0.4, // bonus plus rapide
     type: type
   });
-}
-
-function updateLevel() {
-  level = Math.floor(score / 10) + 1;
-  document.getElementById("level").textContent = level;
 }
 
 function updateHUD() {
@@ -124,6 +139,8 @@ function startGame() {
   gameArea.classList.remove("hidden");
   gameOverScreen.classList.add("hidden");
 
+  lastObstacleSpawn = performance.now();
+
   requestAnimationFrame(update);
 }
 
@@ -156,12 +173,15 @@ function applyBonus(bonus) {
   updateHUD();
 }
 
-function update() {
+function update(now) {
   if (gameOver) return;
 
-  // Spawn obstacle every 1s
-  if (performance.now() % 1000 < 16) {
+  updateDifficulty();
+
+  // Spawn obstacle selon la difficulté
+  if (now - lastObstacleSpawn > obstacleSpawnRate) {
     spawnObstacle();
+    lastObstacleSpawn = now;
   }
 
   if (keys.left) player.x = Math.max(0, player.x - player.speed);
@@ -170,8 +190,6 @@ function update() {
   if (keys.down) player.y = Math.min(canvas.height - player.h, player.y + player.speed);
 
   createTrail(player.x + player.w/2, player.y + player.h);
-
-  updateLevel();
 
   // BONUS: spawn only when score reaches the next milestone
   if (score >= nextBonusAt) {
@@ -231,3 +249,4 @@ function update() {
 
 playBtn.addEventListener("click", startGame);
 replayBtn.addEventListener("click", startGame);
+
