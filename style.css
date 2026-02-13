@@ -5,7 +5,7 @@ body {
   overflow: hidden;
 }
 
-/* DECOR */
+/* Décor */
 #background {
   position: fixed;
   top: 0;
@@ -91,3 +91,4 @@ canvas {
   font-size: 14px;
   z-index: 3;
 }
+
