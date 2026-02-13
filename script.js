@@ -8,37 +8,61 @@ const gameOverScreen = document.getElementById("gameOverScreen");
 const playBtn = document.getElementById("playBtn");
 const replayBtn = document.getElementById("replayBtn");
 
-let player = { x: 180, y: 550, width: 40, height: 40, speed: 6 };
+let player = {
+  x: 180,
+  y: 550,
+  width: 40,
+  height: 40,
+  speed: 6
+};
+
 let obstacles = [];
 let score = 0;
 let gameOver = false;
 let gameStarted = false;
 
-let keys = { left: false, right: false };
+let keys = { left: false, right: false, up: false, down: false };
 
-// 🔥 Meilleur score
+// Meilleur score
 let bestScore = parseInt(localStorage.getItem("bestScore")) || 0;
 document.getElementById("bestScore").textContent = bestScore;
 
 let spawnInterval = null;
 let animationFrameId = null;
 
+// Vitesse progressive
+let difficulty = 1;          // niveau de difficulté
+let obstacleSpeed = 3;       // vitesse initiale
+let speedIncreaseTimer = 0;  // timer pour augmenter la vitesse
+
 document.addEventListener("keydown", (e) => {
   if (!gameStarted) return;
+
   if (e.key === "ArrowLeft") keys.left = true;
   if (e.key === "ArrowRight") keys.right = true;
+  if (e.key === "ArrowUp") keys.up = true;
+  if (e.key === "ArrowDown") keys.down = true;
 });
 
 document.addEventListener("keyup", (e) => {
   if (!gameStarted) return;
+
   if (e.key === "ArrowLeft") keys.left = false;
   if (e.key === "ArrowRight") keys.right = false;
+  if (e.key === "ArrowUp") keys.up = false;
+  if (e.key === "ArrowDown") keys.down = false;
 });
 
 function spawnObstacle() {
   const size = 40;
   const x = Math.random() * (canvas.width - size);
-  obstacles.push({ x, y: -size, width: size, height: size, speed: 3 + Math.random() * 2 });
+  obstacles.push({
+    x,
+    y: -size,
+    width: size,
+    height: size,
+    speed: obstacleSpeed + Math.random() * 1.5
+  });
 }
 
 function startGame() {
@@ -47,6 +71,11 @@ function startGame() {
   score = 0;
   obstacles = [];
   player.x = 180;
+  player.y = 550;
+
+  difficulty = 1;
+  obstacleSpeed = 3;
+  speedIncreaseTimer = 0;
 
   document.getElementById("score").textContent = score;
 
@@ -69,7 +98,6 @@ function endGame() {
 
   if (animationFrameId) cancelAnimationFrame(animationFrameId);
 
-  // 🔥 Corrige le best score
   if (score > bestScore) {
     bestScore = score;
     localStorage.setItem("bestScore", bestScore);
@@ -94,9 +122,19 @@ function checkCollision(a, b) {
 function update() {
   if (gameOver) return;
 
-  // Déplacement fluide et bord à bord
+  // Déplacement fluide (X + Y)
   if (keys.left) player.x = Math.max(0, player.x - player.speed);
   if (keys.right) player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+  if (keys.up) player.y = Math.max(0, player.y - player.speed);
+  if (keys.down) player.y = Math.min(canvas.height - player.height, player.y + player.speed);
+
+  // Augmente la difficulté toutes les 5 secondes
+  speedIncreaseTimer++;
+  if (speedIncreaseTimer > 60 * 5) { // 60 frames = 1 seconde
+    speedIncreaseTimer = 0;
+    difficulty++;
+    obstacleSpeed += 0.5; // augmente la vitesse des obstacles
+  }
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -124,7 +162,7 @@ function update() {
 
 playBtn.addEventListener("click", startGame);
 replayBtn.addEventListener("click", startGame);
-Game);
+
 
 
 
