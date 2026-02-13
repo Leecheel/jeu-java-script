@@ -30,10 +30,11 @@ document.getElementById("bestScore").textContent = bestScore;
 let spawnInterval = null;
 let animationFrameId = null;
 
-// Vitesse progressive
-let difficulty = 1;          // niveau de difficulté
-let obstacleSpeed = 3;       // vitesse initiale
-let speedIncreaseTimer = 0;  // timer pour augmenter la vitesse
+// ⚙️ Niveau & vitesse
+let level = 1;
+let obstacleBaseSpeed = 3;
+let obstacleSpeed = obstacleBaseSpeed;
+const pointsPerLevel = 10;  // chaque 10 points = +1 niveau
 
 document.addEventListener("keydown", (e) => {
   if (!gameStarted) return;
@@ -56,6 +57,7 @@ document.addEventListener("keyup", (e) => {
 function spawnObstacle() {
   const size = 40;
   const x = Math.random() * (canvas.width - size);
+
   obstacles.push({
     x,
     y: -size,
@@ -63,6 +65,11 @@ function spawnObstacle() {
     height: size,
     speed: obstacleSpeed + Math.random() * 1.5
   });
+}
+
+function updateLevel() {
+  level = Math.floor(score / pointsPerLevel) + 1;
+  obstacleSpeed = obstacleBaseSpeed + (level - 1) * 0.8; // +0.8 vitesse par niveau
 }
 
 function startGame() {
@@ -73,11 +80,11 @@ function startGame() {
   player.x = 180;
   player.y = 550;
 
-  difficulty = 1;
-  obstacleSpeed = 3;
-  speedIncreaseTimer = 0;
+  level = 1;
+  obstacleSpeed = obstacleBaseSpeed;
 
   document.getElementById("score").textContent = score;
+  document.getElementById("bestScore").textContent = bestScore;
 
   startScreen.classList.add("hidden");
   gameOverScreen.classList.add("hidden");
@@ -128,13 +135,10 @@ function update() {
   if (keys.up) player.y = Math.max(0, player.y - player.speed);
   if (keys.down) player.y = Math.min(canvas.height - player.height, player.y + player.speed);
 
-  // Augmente la difficulté toutes les 5 secondes
-  speedIncreaseTimer++;
-  if (speedIncreaseTimer > 60 * 5) { // 60 frames = 1 seconde
-    speedIncreaseTimer = 0;
-    difficulty++;
-    obstacleSpeed += 0.5; // augmente la vitesse des obstacles
-  }
+  // Niveau
+  updateLevel();
+  document.getElementById("level").textContent = level;
+
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
