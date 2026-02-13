@@ -15,25 +15,22 @@ let gameOver = false;
 let gameStarted = false;
 
 let keys = { left: false, right: false };
-let bestScore = localStorage.getItem("bestScore") || 0;
+
+// 🔥 Meilleur score
+let bestScore = parseInt(localStorage.getItem("bestScore")) || 0;
 document.getElementById("bestScore").textContent = bestScore;
 
 let spawnInterval = null;
 let animationFrameId = null;
 
-// => NE PAS LANCER LE JEU AUTOMATIQUEMENT
-// update() NE SERA APPELÉ QUE QUAND ON CLIQUE SUR PLAY
-
 document.addEventListener("keydown", (e) => {
   if (!gameStarted) return;
-
   if (e.key === "ArrowLeft") keys.left = true;
   if (e.key === "ArrowRight") keys.right = true;
 });
 
 document.addEventListener("keyup", (e) => {
   if (!gameStarted) return;
-
   if (e.key === "ArrowLeft") keys.left = false;
   if (e.key === "ArrowRight") keys.right = false;
 });
@@ -45,7 +42,6 @@ function spawnObstacle() {
 }
 
 function startGame() {
-  // Reset
   gameStarted = true;
   gameOver = false;
   score = 0;
@@ -54,17 +50,13 @@ function startGame() {
 
   document.getElementById("score").textContent = score;
 
-  // Affichage
   startScreen.classList.add("hidden");
   gameOverScreen.classList.add("hidden");
   gameArea.classList.remove("hidden");
 
-  // Stop interval si déjà existant (sécurité)
   if (spawnInterval) clearInterval(spawnInterval);
-
   spawnInterval = setInterval(spawnObstacle, 1000);
 
-  // Démarre la boucle
   update();
 }
 
@@ -77,6 +69,7 @@ function endGame() {
 
   if (animationFrameId) cancelAnimationFrame(animationFrameId);
 
+  // 🔥 Corrige le best score
   if (score > bestScore) {
     bestScore = score;
     localStorage.setItem("bestScore", bestScore);
@@ -101,8 +94,9 @@ function checkCollision(a, b) {
 function update() {
   if (gameOver) return;
 
-  if (keys.left && player.x > 0) player.x -= player.speed;
-  if (keys.right && player.x < canvas.width - player.width) player.x += player.speed;
+  // Déplacement fluide et bord à bord
+  if (keys.left) player.x = Math.max(0, player.x - player.speed);
+  if (keys.right) player.x = Math.min(canvas.width - player.width, player.x + player.speed);
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -130,5 +124,7 @@ function update() {
 
 playBtn.addEventListener("click", startGame);
 replayBtn.addEventListener("click", startGame);
+Game);
+
 
 
