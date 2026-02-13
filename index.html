@@ -2,39 +2,34 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Dodge Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jeu</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<div id="background"></div>
-
-<div id="startScreen" class="screen">
-  <h1>🟢 Dodge Game</h1>
-  <p>Évite les blocs rouges</p>
-  <button id="playBtn" class="btn">PLAY</button>
-</div>
-
-<div id="gameArea" class="screen hidden">
-  <div class="hud">
-    <div>Score: <span id="score">0</span></div>
-    <div>Best: <span id="bestScore">0</span></div>
-    <div>Level: <span id="level">1</span></div>
-    <div>Shield: <span id="shieldCount">0</span></div>
-    <div>Speed: <span id="speedCount">0</span></div>
+  <div id="startScreen" class="screen">
+    <h1>START</h1>
+    <button id="playBtn">Jouer</button>
   </div>
 
-  <canvas id="gameCanvas" width="400" height="600"></canvas>
-  <p class="hint">Utilise ← → ↑ ↓ pour bouger</p>
-</div>
+  <div id="gameArea" class="hidden">
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+    <div id="hud">
+      <div>Score: <span id="score">0</span></div>
+      <div>Best: <span id="bestScore">0</span></div>
+      <div>Niveau: <span id="level">1</span></div>
+      <div>Boucliers: <span id="shieldCount">0</span></div>
+      <div id="immortal"></div>
+    </div>
+  </div>
 
-<div id="gameOverScreen" class="screen hidden">
-  <h1>Game Over</h1>
-  <p>Score: <span id="finalScore">0</span></p>
-  <p>Meilleur score: <span id="finalBest">0</span></p>
-  <button id="replayBtn" class="btn">REPLAY</button>
-</div>
+  <div id="gameOverScreen" class="screen hidden">
+    <h1>GAME OVER</h1>
+    <div>Score: <span id="finalScore">0</span></div>
+    <div>Best: <span id="finalBest">0</span></div>
+    <button id="replayBtn">Rejouer</button>
+  </div>
 
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
