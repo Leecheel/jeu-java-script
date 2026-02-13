@@ -26,9 +26,8 @@ document.getElementById("bestScore").textContent = bestScore;
 let shieldCount = 0;
 let speedBoostCount = 0;
 
-// Timers
-let lastObstacleSpawn = 0;
-let lastBonusSpawn = 0;
+// Bonus à chaque 20 points
+let nextBonusAt = 20;
 
 document.addEventListener("keydown", e => {
   if (!gameStarted) return;
@@ -117,15 +116,13 @@ function startGame() {
 
   shieldCount = 0;
   speedBoostCount = 0;
+  nextBonusAt = 20;
 
   updateHUD();
 
   startScreen.classList.add("hidden");
   gameArea.classList.remove("hidden");
   gameOverScreen.classList.add("hidden");
-
-  lastObstacleSpawn = performance.now();
-  lastBonusSpawn = performance.now();
 
   requestAnimationFrame(update);
 }
@@ -159,19 +156,12 @@ function applyBonus(bonus) {
   updateHUD();
 }
 
-function update(now) {
+function update() {
   if (gameOver) return;
 
-  // Spawn obstacles every 1s
-  if (now - lastObstacleSpawn > 1000) {
+  // Spawn obstacle every 1s
+  if (performance.now() % 1000 < 16) {
     spawnObstacle();
-    lastObstacleSpawn = now;
-  }
-
-  // Spawn bonus every 4s
-  if (now - lastBonusSpawn > 4000) {
-    spawnBonus();
-    lastBonusSpawn = now;
   }
 
   if (keys.left) player.x = Math.max(0, player.x - player.speed);
@@ -182,6 +172,13 @@ function update(now) {
   createTrail(player.x + player.w/2, player.y + player.h);
 
   updateLevel();
+
+  // BONUS: spawn only when score reaches the next milestone
+  if (score >= nextBonusAt) {
+    spawnBonus();
+    nextBonusAt += 20; // next bonus at +20 points
+  }
+
   updateHUD();
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
