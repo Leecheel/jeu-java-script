@@ -30,11 +30,11 @@ document.getElementById("bestScore").textContent = bestScore;
 let spawnInterval = null;
 let animationFrameId = null;
 
-// ⚙️ Niveau & vitesse
+// Niveau & vitesse
 let level = 1;
 let obstacleBaseSpeed = 3;
 let obstacleSpeed = obstacleBaseSpeed;
-const pointsPerLevel = 10;  // chaque 10 points = +1 niveau
+const pointsPerLevel = 10; // chaque 10 points = +1 niveau
 
 document.addEventListener("keydown", (e) => {
   if (!gameStarted) return;
@@ -70,6 +70,7 @@ function spawnObstacle() {
 function updateLevel() {
   level = Math.floor(score / pointsPerLevel) + 1;
   obstacleSpeed = obstacleBaseSpeed + (level - 1) * 0.8; // +0.8 vitesse par niveau
+  document.getElementById("level").textContent = level;
 }
 
 function startGame() {
@@ -85,6 +86,7 @@ function startGame() {
 
   document.getElementById("score").textContent = score;
   document.getElementById("bestScore").textContent = bestScore;
+  document.getElementById("level").textContent = level;
 
   startScreen.classList.add("hidden");
   gameOverScreen.classList.add("hidden");
@@ -137,8 +139,6 @@ function update() {
 
   // Niveau
   updateLevel();
-  document.getElementById("level").textContent = level;
-
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -166,7 +166,6 @@ function update() {
 
 playBtn.addEventListener("click", startGame);
 replayBtn.addEventListener("click", startGame);
-
 
 
 
