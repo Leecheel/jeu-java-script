@@ -1,17 +1,22 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+const startScreen = document.getElementById("startScreen");
+const gameArea = document.getElementById("gameArea");
+const playBtn = document.getElementById("playBtn");
+
 let player = {
   x: 180,
   y: 550,
   width: 40,
   height: 40,
-  speed: 8
+  speed: 6
 };
 
 let obstacles = [];
 let score = 0;
 let gameOver = false;
+let gameStarted = false;
 
 // Récupère le meilleur score depuis localStorage
 let bestScore = localStorage.getItem("bestScore") || 0;
@@ -19,6 +24,8 @@ document.getElementById("bestScore").textContent = bestScore;
 
 // Contrôles
 document.addEventListener("keydown", (e) => {
+  if (!gameStarted) return;
+
   if (e.key === "ArrowLeft" && player.x > 0) {
     player.x -= player.speed;
   }
@@ -40,7 +47,17 @@ function spawnObstacle() {
   });
 }
 
-setInterval(spawnObstacle, 1000);
+let spawnInterval;
+
+// Démarrer le jeu
+function startGame() {
+  startScreen.style.display = "none";
+  gameArea.style.display = "block";
+  gameStarted = true;
+
+  spawnInterval = setInterval(spawnObstacle, 1000);
+  update();
+}
 
 // Collision
 function checkCollision(a, b) {
@@ -70,6 +87,7 @@ function update() {
 
     if (checkCollision(player, obs)) {
       gameOver = true;
+      clearInterval(spawnInterval);
 
       // Met à jour le meilleur score si besoin
       if (score > bestScore) {
@@ -91,5 +109,8 @@ function update() {
   requestAnimationFrame(update);
 }
 
+playBtn.addEventListener("click", startGame);
+
 update();
+
 
