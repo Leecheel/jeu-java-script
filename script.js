@@ -17,7 +17,8 @@ let player = {
 };
 
 let obstacles = [];
-let particles = []; // effets
+let particles = [];
+let stars = [];
 let score = 0;
 let gameOver = false;
 let gameStarted = false;
@@ -37,7 +38,7 @@ let obstacleBaseSpeed = 3;
 let obstacleSpeed = obstacleBaseSpeed;
 const pointsPerLevel = 10;
 
-// ======= INPUT =======
+// === input ===
 document.addEventListener("keydown", (e) => {
   if (!gameStarted) return;
   if (e.key === "ArrowLeft") keys.left = true;
@@ -54,7 +55,28 @@ document.addEventListener("keyup", (e) => {
   if (e.key === "ArrowDown") keys.down = false;
 });
 
-// ======= EFFETS PARTICULES =======
+// === stars background ===
+for (let i = 0; i < 80; i++) {
+  stars.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    size: Math.random() * 2 + 1,
+    speed: Math.random() * 1 + 0.5
+  });
+}
+
+function drawStars() {
+  ctx.fillStyle = "white";
+  stars.forEach(s => {
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+    ctx.fill();
+    s.y += s.speed + (level * 0.1);
+    if (s.y > canvas.height) s.y = 0;
+  });
+}
+
+// === particles ===
 function createTrail(x, y) {
   particles.push({
     x,
@@ -65,10 +87,25 @@ function createTrail(x, y) {
   });
 }
 
+function createExplosion(x, y) {
+  for (let i = 0; i < 30; i++) {
+    particles.push({
+      x,
+      y,
+      size: Math.random() * 4 + 2,
+      alpha: 1,
+      speedX: (Math.random() - 0.5) * 6,
+      speedY: (Math.random() - 0.5) * 6
+    });
+  }
+}
+
 function drawParticles() {
   particles.forEach((p, i) => {
-    p.y += p.speedY;
+    p.x += p.speedX || 0;
+    p.y += p.speedY || p.speedY || 0;
     p.alpha -= 0.02;
+
     if (p.alpha <= 0) particles.splice(i, 1);
     else {
       ctx.fillStyle = `rgba(0, 255, 0, ${p.alpha})`;
@@ -79,7 +116,7 @@ function drawParticles() {
   });
 }
 
-// ======= OBSTACLES =======
+// === obstacles ===
 function spawnObstacle() {
   const size = 40;
   const x = Math.random() * (canvas.width - size);
@@ -98,7 +135,7 @@ function updateLevel() {
   document.getElementById("level").textContent = level;
 }
 
-// ======= GAME =======
+// === game ===
 function startGame() {
   gameStarted = true;
   gameOver = false;
@@ -132,6 +169,8 @@ function endGame() {
   clearInterval(spawnInterval);
   spawnInterval = null;
 
+  createExplosion(player.x + player.width / 2, player.y + player.height / 2);
+
   if (animationFrameId) cancelAnimationFrame(animationFrameId);
 
   if (score > bestScore) {
@@ -142,8 +181,10 @@ function endGame() {
   document.getElementById("finalScore").textContent = score;
   document.getElementById("finalBest").textContent = bestScore;
 
-  gameArea.classList.add("hidden");
-  gameOverScreen.classList.remove("hidden");
+  setTimeout(() => {
+    gameArea.classList.add("hidden");
+    gameOverScreen.classList.remove("hidden");
+  }, 500);
 }
 
 function checkCollision(a, b) {
@@ -164,7 +205,7 @@ function update() {
   if (keys.up) player.y = Math.max(0, player.y - player.speed);
   if (keys.down) player.y = Math.min(canvas.height - player.height, player.y + player.speed);
 
-  // effet traînée
+  // traînée
   createTrail(player.x + player.width / 2, player.y + player.height);
 
   // niveau
@@ -172,11 +213,14 @@ function update() {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // dessine joueur
+  // décor étoilé
+  drawStars();
+
+  // joueur
   ctx.fillStyle = "lime";
   ctx.fillRect(player.x, player.y, player.width, player.height);
 
-  // dessine obstacles
+  // obstacles
   ctx.fillStyle = "red";
   obstacles.forEach((obs, index) => {
     obs.y += obs.speed;
