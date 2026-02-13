@@ -8,10 +8,21 @@
 <body>
 
 <h1>🟢 Dodge Game</h1>
-<p>Score: <span id="score">0</span></p>
-<p>Meilleur score: <span id="bestScore">0</span></p>
-<canvas id="gameCanvas" width="400" height="600"></canvas>
-<p>Utilise ← → pour bouger</p>
+
+<!-- Écran de démarrage -->
+<div id="startScreen">
+  <h2>Bienvenue !</h2>
+  <p>Évite les blocs rouges</p>
+  <button id="playBtn">PLAY</button>
+</div>
+
+<!-- Jeu -->
+<div id="gameArea" style="display:none;">
+  <p>Score: <span id="score">0</span></p>
+  <p>Meilleur score: <span id="bestScore">0</span></p>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <p>Utilise ← → pour bouger</p>
+</div>
 
 <script src="script.js"></script>
 </body>
