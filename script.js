@@ -18,20 +18,27 @@ let score = 0;
 let gameOver = false;
 let gameStarted = false;
 
-// Récupère le meilleur score depuis localStorage
+// Clavier
+let keys = {
+  left: false,
+  right: false
+};
+
+// Meilleur score
 let bestScore = localStorage.getItem("bestScore") || 0;
 document.getElementById("bestScore").textContent = bestScore;
 
-// Contrôles
+// Gestion clavier
 document.addEventListener("keydown", (e) => {
   if (!gameStarted) return;
 
-  if (e.key === "ArrowLeft" && player.x > 0) {
-    player.x -= player.speed;
-  }
-  if (e.key === "ArrowRight" && player.x < canvas.width - player.width) {
-    player.x += player.speed;
-  }
+  if (e.key === "ArrowLeft") keys.left = true;
+  if (e.key === "ArrowRight") keys.right = true;
+});
+
+document.addEventListener("keyup", (e) => {
+  if (e.key === "ArrowLeft") keys.left = false;
+  if (e.key === "ArrowRight") keys.right = false;
 });
 
 // Générer obstacles
@@ -73,6 +80,10 @@ function checkCollision(a, b) {
 function update() {
   if (gameOver) return;
 
+  // Déplacement fluide
+  if (keys.left && player.x > 0) player.x -= player.speed;
+  if (keys.right && player.x < canvas.width - player.width) player.x += player.speed;
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Joueur
@@ -89,7 +100,6 @@ function update() {
       gameOver = true;
       clearInterval(spawnInterval);
 
-      // Met à jour le meilleur score si besoin
       if (score > bestScore) {
         bestScore = score;
         localStorage.setItem("bestScore", bestScore);
@@ -110,7 +120,6 @@ function update() {
 }
 
 playBtn.addEventListener("click", startGame);
-
 
 
 
