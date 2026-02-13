@@ -49,11 +49,11 @@ document.addEventListener("keyup", e => {
 });
 
 function updateDifficulty() {
-  // plus le score est haut, plus la vitesse augmente
   level = Math.floor(score / 10) + 1;
 
-  // spawn plus rapide avec le score
-  obstacleSpawnRate = Math.max(250, 1000 - score * 10);
+  // SPAWN beaucoup plus rapide
+  // on réduit très vite le spawn rate
+  obstacleSpawnRate = Math.max(150, 1000 - score * 20);
 
   document.getElementById("level").textContent = level;
 }
@@ -62,7 +62,7 @@ function spawnObstacle() {
   const size = 40;
 
   // plus le niveau est haut, plus il y a d'obstacles par spawn
-  const count = Math.min(4, Math.floor(level / 3) + 1);
+  const count = Math.min(6, Math.floor(level / 2) + 1);
 
   for (let i = 0; i < count; i++) {
     obstacles.push({
@@ -83,7 +83,7 @@ function spawnBonus() {
     y: -size,
     w: size,
     h: size,
-    speed: 2 + level * 0.4, // bonus plus rapide
+    speed: 2 + level * 0.4,
     type: type
   });
 }
@@ -194,7 +194,7 @@ function update(now) {
   // BONUS: spawn only when score reaches the next milestone
   if (score >= nextBonusAt) {
     spawnBonus();
-    nextBonusAt += 20; // next bonus at +20 points
+    nextBonusAt += 20;
   }
 
   updateHUD();
@@ -249,4 +249,3 @@ function update(now) {
 
 playBtn.addEventListener("click", startGame);
 replayBtn.addEventListener("click", startGame);
-
