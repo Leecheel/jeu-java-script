@@ -124,7 +124,6 @@ function startGame() {
   gameArea.classList.remove("hidden");
   gameOverScreen.classList.add("hidden");
 
-  // STOP intervals existants (important)
   if (obstacleInterval) clearInterval(obstacleInterval);
   if (bonusInterval) clearInterval(bonusInterval);
 
@@ -138,7 +137,6 @@ function endGame() {
   gameOver = true;
   gameStarted = false;
 
-  // STOP intervals
   if (obstacleInterval) clearInterval(obstacleInterval);
   if (bonusInterval) clearInterval(bonusInterval);
 
@@ -159,7 +157,7 @@ function applyBonus(bonus) {
     score += 1;
   }
   if (bonus.type === 1) {
-    if (shieldCount < 3) shieldCount += 1;  // limite à 3
+    if (shieldCount < 3) shieldCount += 1;
   }
   if (bonus.type === 2) {
     speedBoostCount += 1;
