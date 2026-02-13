@@ -1,8 +1,47 @@
 body {
+  margin: 0;
   text-align: center;
   background: #111;
   color: white;
   font-family: Arial, sans-serif;
+}
+
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.hidden {
+  display: none;
+}
+
+.btn {
+  padding: 12px 25px;
+  font-size: 20px;
+  cursor: pointer;
+  border: 2px solid white;
+  background: transparent;
+  color: white;
+  margin-top: 20px;
+}
+
+.btn:hover {
+  background: white;
+  color: black;
+}
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  width: 400px;
+  margin-top: 20px;
 }
 
 canvas {
@@ -10,13 +49,8 @@ canvas {
   border: 2px solid white;
   margin-top: 10px;
 }
-#startScreen {
-  margin-top: 30px;
-}
 
-#playBtn {
-  padding: 10px 20px;
-  font-size: 18px;
-  cursor: pointer;
+.hint {
+  margin-top: 10px;
+  font-size: 14px;
 }
-
