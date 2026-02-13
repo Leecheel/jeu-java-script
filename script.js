@@ -26,6 +26,10 @@ document.getElementById("bestScore").textContent = bestScore;
 let shieldCount = 0;
 let speedBoostCount = 0;
 
+// Intervalles
+let obstacleInterval = null;
+let bonusInterval = null;
+
 document.addEventListener("keydown", e => {
   if (!gameStarted) return;
   if (e.key === "ArrowLeft") keys.left = true;
@@ -120,8 +124,12 @@ function startGame() {
   gameArea.classList.remove("hidden");
   gameOverScreen.classList.add("hidden");
 
-  setInterval(spawnObstacle, 1000);
-  setInterval(spawnBonus, 4000);
+  // STOP intervals existants (important)
+  if (obstacleInterval) clearInterval(obstacleInterval);
+  if (bonusInterval) clearInterval(bonusInterval);
+
+  obstacleInterval = setInterval(spawnObstacle, 1000);
+  bonusInterval = setInterval(spawnBonus, 4000);
 
   requestAnimationFrame(update);
 }
@@ -129,6 +137,10 @@ function startGame() {
 function endGame() {
   gameOver = true;
   gameStarted = false;
+
+  // STOP intervals
+  if (obstacleInterval) clearInterval(obstacleInterval);
+  if (bonusInterval) clearInterval(bonusInterval);
 
   if (score > bestScore) {
     bestScore = score;
@@ -147,7 +159,7 @@ function applyBonus(bonus) {
     score += 1;
   }
   if (bonus.type === 1) {
-    shieldCount += 1;
+    if (shieldCount < 3) shieldCount += 1;  // limite à 3
   }
   if (bonus.type === 2) {
     speedBoostCount += 1;
