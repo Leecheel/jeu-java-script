@@ -10,7 +10,7 @@ let player = {
   y: 550,
   width: 40,
   height: 40,
-  speed: 6
+  speed: 10
 };
 
 let obstacles = [];
@@ -111,6 +111,6 @@ function update() {
 
 playBtn.addEventListener("click", startGame);
 
-update();
+
 
 
