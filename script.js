@@ -3,14 +3,17 @@ const ctx = canvas.getContext("2d");
 
 const startScreen = document.getElementById("startScreen");
 const gameArea = document.getElementById("gameArea");
+const gameOverScreen = document.getElementById("gameOverScreen");
+
 const playBtn = document.getElementById("playBtn");
+const replayBtn = document.getElementById("replayBtn");
 
 let player = {
   x: 180,
   y: 550,
   width: 40,
   height: 40,
-  speed: 10
+  speed: 6
 };
 
 let obstacles = [];
@@ -18,20 +21,14 @@ let score = 0;
 let gameOver = false;
 let gameStarted = false;
 
-// Clavier
-let keys = {
-  left: false,
-  right: false
-};
+let keys = { left: false, right: false };
 
-// Meilleur score
 let bestScore = localStorage.getItem("bestScore") || 0;
 document.getElementById("bestScore").textContent = bestScore;
 
-// Gestion clavier
+// clavier
 document.addEventListener("keydown", (e) => {
   if (!gameStarted) return;
-
   if (e.key === "ArrowLeft") keys.left = true;
   if (e.key === "ArrowRight") keys.right = true;
 });
@@ -41,7 +38,6 @@ document.addEventListener("keyup", (e) => {
   if (e.key === "ArrowRight") keys.right = false;
 });
 
-// Générer obstacles
 function spawnObstacle() {
   const size = 40;
   const x = Math.random() * (canvas.width - size);
@@ -56,17 +52,39 @@ function spawnObstacle() {
 
 let spawnInterval;
 
-// Démarrer le jeu
 function startGame() {
-  startScreen.style.display = "none";
-  gameArea.style.display = "block";
+  startScreen.classList.add("hidden");
+  gameOverScreen.classList.add("hidden");
+  gameArea.classList.remove("hidden");
+
   gameStarted = true;
+  gameOver = false;
+  score = 0;
+  obstacles = [];
+  player.x = 180;
+
+  document.getElementById("score").textContent = score;
 
   spawnInterval = setInterval(spawnObstacle, 1000);
   update();
 }
 
-// Collision
+function endGame() {
+  gameOver = true;
+  clearInterval(spawnInterval);
+
+  if (score > bestScore) {
+    bestScore = score;
+    localStorage.setItem("bestScore", bestScore);
+  }
+
+  document.getElementById("finalScore").textContent = score;
+  document.getElementById("finalBest").textContent = bestScore;
+
+  gameArea.classList.add("hidden");
+  gameOverScreen.classList.remove("hidden");
+}
+
 function checkCollision(a, b) {
   return (
     a.x < b.x + b.width &&
@@ -76,37 +94,24 @@ function checkCollision(a, b) {
   );
 }
 
-// Boucle de jeu
 function update() {
   if (gameOver) return;
 
-  // Déplacement fluide
   if (keys.left && player.x > 0) player.x -= player.speed;
   if (keys.right && player.x < canvas.width - player.width) player.x += player.speed;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Joueur
   ctx.fillStyle = "lime";
   ctx.fillRect(player.x, player.y, player.width, player.height);
 
-  // Obstacles
   ctx.fillStyle = "red";
   obstacles.forEach((obs, index) => {
     obs.y += obs.speed;
     ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
 
     if (checkCollision(player, obs)) {
-      gameOver = true;
-      clearInterval(spawnInterval);
-
-      if (score > bestScore) {
-        bestScore = score;
-        localStorage.setItem("bestScore", bestScore);
-      }
-
-      alert("Game Over ! Score: " + score + "\nMeilleur score: " + bestScore);
-      location.reload();
+      endGame();
     }
 
     if (obs.y > canvas.height) {
@@ -120,6 +125,8 @@ function update() {
 }
 
 playBtn.addEventListener("click", startGame);
+replayBtn.addEventListener("click", startGame);
+
 
 
 
