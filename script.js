@@ -24,13 +24,16 @@ document.getElementById("bestScore").textContent = bestScore;
 
 // Bonus accumulables
 let shieldCount = 0;
-let speedBoostCount = 0;
+
+// Bonus immortel
+let immortal = false;
+let immortalEnd = 0;
 
 // Bonus à chaque 20 points
 let nextBonusAt = 20;
 
 // DIFFICULTY
-let obstacleSpawnRate = 1000;  // ms
+let obstacleSpawnRate = 1000;
 let lastObstacleSpawn = 0;
 
 document.addEventListener("keydown", e => {
@@ -50,18 +53,12 @@ document.addEventListener("keyup", e => {
 
 function updateDifficulty() {
   level = Math.floor(score / 10) + 1;
-
-  // SPAWN beaucoup plus rapide
-  // on réduit très vite le spawn rate
   obstacleSpawnRate = Math.max(150, 1000 - score * 20);
-
   document.getElementById("level").textContent = level;
 }
 
 function spawnObstacle() {
   const size = 40;
-
-  // plus le niveau est haut, plus il y a d'obstacles par spawn
   const count = Math.min(6, Math.floor(level / 2) + 1);
 
   for (let i = 0; i < count; i++) {
@@ -77,7 +74,13 @@ function spawnObstacle() {
 
 function spawnBonus() {
   const size = 25;
-  const type = Math.floor(Math.random() * 3); // 0=point, 1=shield, 2=speed
+  const typeChance = Math.random();
+
+  let type = 0;
+  if (typeChance < 0.7) type = 0;       // 70% points
+  else if (typeChance < 0.9) type = 1;  // 20% shield
+  else type = 2;                        // 10% immortalité
+
   bonuses.push({
     x: Math.random() * (canvas.width - size),
     y: -size,
@@ -91,26 +94,12 @@ function spawnBonus() {
 function updateHUD() {
   document.getElementById("score").textContent = score;
   document.getElementById("shieldCount").textContent = shieldCount;
-  document.getElementById("speedCount").textContent = speedBoostCount;
-  document.getElementById("level").textContent = level;
-}
 
-function createTrail(x,y) {
-  particles.push({x,y,size:Math.random()*3+2,alpha:1});
-}
-
-function drawParticles() {
-  for (let i = particles.length-1; i>=0; i--) {
-    const p = particles[i];
-    p.alpha -= 0.02;
-    p.y += 1;
-    if (p.alpha <= 0) particles.splice(i,1);
-    else {
-      ctx.fillStyle = `rgba(0,255,0,${p.alpha})`;
-      ctx.beginPath();
-      ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
-      ctx.fill();
-    }
+  const immortalEl = document.getElementById("immortal");
+  if (immortal) {
+    immortalEl.textContent = "Immortel : " + Math.max(0, Math.ceil((immortalEnd - performance.now()) / 1000)) + "s";
+  } else {
+    immortalEl.textContent = "";
   }
 }
 
@@ -130,7 +119,8 @@ function startGame() {
   player.y = 550;
 
   shieldCount = 0;
-  speedBoostCount = 0;
+  immortal = false;
+  immortalEnd = 0;
   nextBonusAt = 20;
 
   updateHUD();
@@ -140,7 +130,6 @@ function startGame() {
   gameOverScreen.classList.add("hidden");
 
   lastObstacleSpawn = performance.now();
-
   requestAnimationFrame(update);
 }
 
@@ -168,7 +157,8 @@ function applyBonus(bonus) {
     if (shieldCount < 3) shieldCount += 1;
   }
   if (bonus.type === 2) {
-    speedBoostCount += 1;
+    immortal = true;
+    immortalEnd = performance.now() + 5000; // 5 secondes
   }
   updateHUD();
 }
@@ -176,9 +166,12 @@ function applyBonus(bonus) {
 function update(now) {
   if (gameOver) return;
 
+  if (immortal && now >= immortalEnd) {
+    immortal = false;
+  }
+
   updateDifficulty();
 
-  // Spawn obstacle selon la difficulté
   if (now - lastObstacleSpawn > obstacleSpawnRate) {
     spawnObstacle();
     lastObstacleSpawn = now;
@@ -189,9 +182,6 @@ function update(now) {
   if (keys.up) player.y = Math.max(0, player.y - player.speed);
   if (keys.down) player.y = Math.min(canvas.height - player.h, player.y + player.speed);
 
-  createTrail(player.x + player.w/2, player.y + player.h);
-
-  // BONUS: spawn only when score reaches the next milestone
   if (score >= nextBonusAt) {
     spawnBonus();
     nextBonusAt += 20;
@@ -201,18 +191,18 @@ function update(now) {
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // Player
-  ctx.fillStyle = "lime";
+  ctx.fillStyle = immortal ? "gold" : "lime";
   ctx.fillRect(player.x, player.y, player.w, player.h);
 
-  // Obstacles
   ctx.fillStyle = "red";
   obstacles.forEach((o,i)=>{
     o.y += o.speed;
     ctx.fillRect(o.x,o.y,o.w,o.h);
 
     if (checkCollision(player,o)) {
-      if (shieldCount > 0) {
+      if (immortal) {
+        obstacles.splice(i,1);
+      } else if (shieldCount > 0) {
         shieldCount--;
         obstacles.splice(i,1);
       } else {
@@ -222,17 +212,15 @@ function update(now) {
     if (o.y > canvas.height) {
       obstacles.splice(i,1);
       score++;
-      updateHUD();
     }
   });
 
-  // Bonuses
   bonuses.forEach((b,i)=>{
     b.y += b.speed;
 
     if (b.type === 0) ctx.fillStyle = "yellow";
     if (b.type === 1) ctx.fillStyle = "cyan";
-    if (b.type === 2) ctx.fillStyle = "magenta";
+    if (b.type === 2) ctx.fillStyle = "orange";
 
     ctx.fillRect(b.x,b.y,b.w,b.h);
 
@@ -243,7 +231,6 @@ function update(now) {
     if (b.y > canvas.height) bonuses.splice(i,1);
   });
 
-  drawParticles();
   requestAnimationFrame(update);
 }
 
