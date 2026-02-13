@@ -1,110 +1,83 @@
-// ------------------------------------------------------------
-// VARIABLES GLOBALES
-// ------------------------------------------------------------
-var imgPlayer, imgEnemy;
-var player;
-var enemies;
-var score = 0;
-var startTime;
-var gameOver = false;
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-// ------------------------------------------------------------
-// CHARGEMENT DES IMAGES
-// ------------------------------------------------------------
-function preload() {
-  imgPlayer = loadImage("asset/smiley.png");
-  imgEnemy  = loadImage("asset/smiley_blood.png");
-}
+let player = {
+  x: 180,
+  y: 550,
+  width: 40,
+  height: 40,
+  speed: 6
+};
 
-// ------------------------------------------------------------
-// INITIALISATION DU JEU
-// ------------------------------------------------------------
-function setup() {
-  createCanvas(800, 300);
-  textSize(24);
+let obstacles = [];
+let score = 0;
+let gameOver = false;
 
-  // Enregistre le moment du début de la partie
-  startTime = millis();
-
-  // --- Création du joueur ---
-  player = createSprite(400, 150);
-  player.addImage(imgPlayer);
-
-  // --- Création des ennemis ---
-  enemies = new Group();
-  for (var i = 0; i < 10; i++) {
-    var e = createSprite(random(20, 780), random(20, 280));
-    e.addImage(imgEnemy);
-    e.setVelocity(random(-5, 5), random(-5, 5));
-    enemies.add(e);
+// Contrôles
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft" && player.x > 0) {
+    player.x -= player.speed;
   }
+  if (e.key === "ArrowRight" && player.x < canvas.width - player.width) {
+    player.x += player.speed;
+  }
+});
 
-  // --- Création des murs (bords) ---
-  wallLeft   = createSprite(-5, 150, 10, 300);
-  wallRight  = createSprite(805, 150, 10, 300);
-  wallTop    = createSprite(400, -5, 800, 10);
-  wallBottom = createSprite(400, 305, 800, 10);
-
-  wallLeft.immovable = true;
-  wallRight.immovable = true;
-  wallTop.immovable = true;
-  wallBottom.immovable = true;
+// Générer obstacles
+function spawnObstacle() {
+  const size = 40;
+  const x = Math.random() * (canvas.width - size);
+  obstacles.push({
+    x: x,
+    y: -size,
+    width: size,
+    height: size,
+    speed: 3 + Math.random() * 2
+  });
 }
 
-// ------------------------------------------------------------
-// BOUCLE PRINCIPALE DU JEU
-// ------------------------------------------------------------
-function draw() {
-  background(240);
+setInterval(spawnObstacle, 1000);
 
-  if (!gameOver) {
+// Collision
+function checkCollision(a, b) {
+  return (
+    a.x < b.x + b.width &&
+    a.x + a.width > b.x &&
+    a.y < b.y + b.height &&
+    a.y + a.height > b.y
+  );
+}
 
-    // --- Calcul du temps restant ---
-    var elapsed   = millis() - startTime;
-    var remaining = 8 - round(elapsed / 1000);
+// Boucle de jeu
+function update() {
+  if (gameOver) return;
 
-    if (remaining <= 0) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Joueur
+  ctx.fillStyle = "lime";
+  ctx.fillRect(player.x, player.y, player.width, player.height);
+
+  // Obstacles
+  ctx.fillStyle = "red";
+  obstacles.forEach((obs, index) => {
+    obs.y += obs.speed;
+    ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+
+    if (checkCollision(player, obs)) {
       gameOver = true;
-      remaining = 0;
+      alert("Game Over ! Score: " + score);
+      location.reload();
     }
 
-    // --- Déplacement du joueur ---
-    if (keyIsDown(LEFT_ARROW))  player.position.x -= 5;
-    if (keyIsDown(RIGHT_ARROW)) player.position.x += 5;
-    if (keyIsDown(UP_ARROW))    player.position.y -= 5;
-    if (keyIsDown(DOWN_ARROW))  player.position.y += 5;
+    if (obs.y > canvas.height) {
+      obstacles.splice(index, 1);
+      score++;
+      document.getElementById("score").textContent = score;
+    }
+  });
 
-    // Empêche le joueur de sortir de la fenêtre
-    player.position.x = constrain(player.position.x, 20, width - 20);
-    player.position.y = constrain(player.position.y, 20, height - 20);
-
-    // --- Collisions des ennemis ---
-    enemies.bounce(wallLeft);
-    enemies.bounce(wallRight);
-    enemies.bounce(wallTop);
-    enemies.bounce(wallBottom);
-    enemies.bounce(enemies);
-
-    // --- Collision joueur / ennemis ---
-    player.overlap(enemies, hitEnemy);
-
-    // --- Affichage du score et du temps ---
-    text("Score : " + score, 10, 30);
-    text("Temps : " + remaining + "s", 10, 60);
-
-  } else {
-    // Fin de la partie : affichage du score au centre
-    textAlign(CENTER);
-    text("FIN ! Score : " + score, width / 2, height / 2);
-  }
-
-  drawSprites();
+  requestAnimationFrame(update);
 }
 
-// ------------------------------------------------------------
-// FONCTION APPELÉE QUAND LE JOUEUR ATTRAPE UN ENNEMI
-// ------------------------------------------------------------
-function hitEnemy(player, enemy) {
-  enemy.remove();
-  score++;
-}
+update();
