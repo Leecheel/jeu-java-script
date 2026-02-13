@@ -6,12 +6,16 @@ let player = {
   y: 550,
   width: 40,
   height: 40,
-  speed: 6
+  speed: 8
 };
 
 let obstacles = [];
 let score = 0;
 let gameOver = false;
+
+// Récupère le meilleur score depuis localStorage
+let bestScore = localStorage.getItem("bestScore") || 0;
+document.getElementById("bestScore").textContent = bestScore;
 
 // Contrôles
 document.addEventListener("keydown", (e) => {
@@ -66,7 +70,14 @@ function update() {
 
     if (checkCollision(player, obs)) {
       gameOver = true;
-      alert("Game Over ! Score: " + score);
+
+      // Met à jour le meilleur score si besoin
+      if (score > bestScore) {
+        bestScore = score;
+        localStorage.setItem("bestScore", bestScore);
+      }
+
+      alert("Game Over ! Score: " + score + "\nMeilleur score: " + bestScore);
       location.reload();
     }
 
@@ -81,3 +92,4 @@ function update() {
 }
 
 update();
+
