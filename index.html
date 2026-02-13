@@ -7,23 +7,30 @@
 </head>
 <body>
 
-<h1>🟢 Dodge Game</h1>
-
-<!-- Écran de démarrage -->
-<div id="startScreen">
-  <h2>Bienvenue !</h2>
+<div id="startScreen" class="screen">
+  <h1>🟢 Dodge Game</h1>
   <p>Évite les blocs rouges</p>
-  <button id="playBtn">PLAY</button>
+  <button id="playBtn" class="btn">PLAY</button>
 </div>
 
-<!-- Jeu -->
-<div id="gameArea" style="display:none;">
-  <p>Score: <span id="score">0</span></p>
-  <p>Meilleur score: <span id="bestScore">0</span></p>
+<div id="gameArea" class="screen hidden">
+  <div class="hud">
+    <div>Score: <span id="score">0</span></div>
+    <div>Best: <span id="bestScore">0</span></div>
+  </div>
+
   <canvas id="gameCanvas" width="400" height="600"></canvas>
-  <p>Utilise ← → pour bouger</p>
+  <p class="hint">Utilise ← → pour bouger</p>
+</div>
+
+<div id="gameOverScreen" class="screen hidden">
+  <h1>Game Over</h1>
+  <p>Score: <span id="finalScore">0</span></p>
+  <p>Meilleur score: <span id="finalBest">0</span></p>
+  <button id="replayBtn" class="btn">REPLAY</button>
 </div>
 
 <script src="script.js"></script>
 </body>
 </html>
+
