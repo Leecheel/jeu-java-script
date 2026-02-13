@@ -17,6 +17,7 @@ let player = {
 };
 
 let obstacles = [];
+let particles = []; // effets
 let score = 0;
 let gameOver = false;
 let gameStarted = false;
@@ -34,11 +35,11 @@ let animationFrameId = null;
 let level = 1;
 let obstacleBaseSpeed = 3;
 let obstacleSpeed = obstacleBaseSpeed;
-const pointsPerLevel = 10; // chaque 10 points = +1 niveau
+const pointsPerLevel = 10;
 
+// ======= INPUT =======
 document.addEventListener("keydown", (e) => {
   if (!gameStarted) return;
-
   if (e.key === "ArrowLeft") keys.left = true;
   if (e.key === "ArrowRight") keys.right = true;
   if (e.key === "ArrowUp") keys.up = true;
@@ -47,17 +48,41 @@ document.addEventListener("keydown", (e) => {
 
 document.addEventListener("keyup", (e) => {
   if (!gameStarted) return;
-
   if (e.key === "ArrowLeft") keys.left = false;
   if (e.key === "ArrowRight") keys.right = false;
   if (e.key === "ArrowUp") keys.up = false;
   if (e.key === "ArrowDown") keys.down = false;
 });
 
+// ======= EFFETS PARTICULES =======
+function createTrail(x, y) {
+  particles.push({
+    x,
+    y,
+    size: Math.random() * 3 + 2,
+    alpha: 1,
+    speedY: Math.random() * 1 + 0.5
+  });
+}
+
+function drawParticles() {
+  particles.forEach((p, i) => {
+    p.y += p.speedY;
+    p.alpha -= 0.02;
+    if (p.alpha <= 0) particles.splice(i, 1);
+    else {
+      ctx.fillStyle = `rgba(0, 255, 0, ${p.alpha})`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+}
+
+// ======= OBSTACLES =======
 function spawnObstacle() {
   const size = 40;
   const x = Math.random() * (canvas.width - size);
-
   obstacles.push({
     x,
     y: -size,
@@ -69,15 +94,17 @@ function spawnObstacle() {
 
 function updateLevel() {
   level = Math.floor(score / pointsPerLevel) + 1;
-  obstacleSpeed = obstacleBaseSpeed + (level - 1) * 0.8; // +0.8 vitesse par niveau
+  obstacleSpeed = obstacleBaseSpeed + (level - 1) * 0.8;
   document.getElementById("level").textContent = level;
 }
 
+// ======= GAME =======
 function startGame() {
   gameStarted = true;
   gameOver = false;
   score = 0;
   obstacles = [];
+  particles = [];
   player.x = 180;
   player.y = 550;
 
@@ -131,20 +158,25 @@ function checkCollision(a, b) {
 function update() {
   if (gameOver) return;
 
-  // Déplacement fluide (X + Y)
+  // déplacement
   if (keys.left) player.x = Math.max(0, player.x - player.speed);
   if (keys.right) player.x = Math.min(canvas.width - player.width, player.x + player.speed);
   if (keys.up) player.y = Math.max(0, player.y - player.speed);
   if (keys.down) player.y = Math.min(canvas.height - player.height, player.y + player.speed);
 
-  // Niveau
+  // effet traînée
+  createTrail(player.x + player.width / 2, player.y + player.height);
+
+  // niveau
   updateLevel();
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // dessine joueur
   ctx.fillStyle = "lime";
   ctx.fillRect(player.x, player.y, player.width, player.height);
 
+  // dessine obstacles
   ctx.fillStyle = "red";
   obstacles.forEach((obs, index) => {
     obs.y += obs.speed;
@@ -161,11 +193,10 @@ function update() {
     }
   });
 
+  drawParticles();
+
   animationFrameId = requestAnimationFrame(update);
 }
 
 playBtn.addEventListener("click", startGame);
 replayBtn.addEventListener("click", startGame);
-
-
-
